@@ -69,7 +69,7 @@ def read_tagger_collection(alignment, method='median', **kwargs):
 
 
 
-def filter_bam_multihits(filename, max_tags, max_hits, out_dir, read_tagger_method, omit_detail=True):
+def filter_bam_multihits(filename, max_tags, max_hits, out_dir, read_tagger_method, omit_detail=False):
 	"""Pre-processing function for cleaning up the input bam file.
 	Args:
 	Returns:
@@ -84,17 +84,17 @@ def filter_bam_multihits(filename, max_tags, max_hits, out_dir, read_tagger_meth
 	read_tagger=lambda x: read_tagger_collection(x, method=read_tagger_method)
 	logger.info('filtering input bam')
 	
-	in_bam = pysam.Samfile(filename,'rb')
+	in_bam = pysam.AlignmentFile(filename,'rb')
 	# unique read bam
 	ubam_fn = os.path.join(out_dir, 'unique.bam')
 	sorted_ubam_fn = os.path.join(out_dir, 'unique.sorted.bam')
-	ubam=pysam.Samfile(ubam_fn, 'wb', template=in_bam)
+	ubam=pysam.AlignmentFile(ubam_fn, 'wb', template=in_bam)
 	unique_counter = 0
 	
 	# multi-read bam
 	mbam_fn = os.path.join(out_dir, 'multi.bam')
 	sorted_mbam_fn = os.path.join(out_dir, 'multi.sorted.bam')
-	mbam=pysam.Samfile(mbam_fn, 'wb', template=in_bam)
+	mbam=pysam.AlignmentFile(mbam_fn, 'wb', template=in_bam)
 	mread_set = set()
 	
 	# do not omit sequences if to filter max_tags
@@ -141,7 +141,7 @@ def filter_bam_multihits(filename, max_tags, max_hits, out_dir, read_tagger_meth
 		
 		ubam.close()
 		mbam.close()
-		
+
 		# sorting
 		pysam.sort('-m', '4G', '-@', '3', '-T', os.path.dirname(sorted_ubam_fn), '-o', sorted_ubam_fn, ubam_fn)
 		os.remove(ubam_fn)
@@ -210,8 +210,8 @@ def filter_bam_maxtags(obam_fn, ibam_fn, max_tags=1):
 	"""
 	assert max_tags>0
 	# prepare files
-	ibam = pysam.Samfile(ibam_fn, 'rb')
-	obam = pysam.Samfile(obam_fn, 'wb', template=ibam)
+	ibam = pysam.AlignmentFile(ibam_fn, 'rb')
+	obam = pysam.AlignmentFile(obam_fn, 'wb', template=ibam)
 	# init 
 	collapse_dict = defaultdict(list)
 	chr_list=[x['SN'] for x in ibam.header['SQ']]
